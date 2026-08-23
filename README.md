@@ -2,13 +2,9 @@
 
 # ExtremeViper
 
-### Real-Time Automation & Reliability Engineering Platform
+### Real-Time Automation, Reliability & Operations Platform
 
-**A RebootAI flagship portfolio project for Cloud, DevOps, Platform, SRE, and Operations Support roles**
-
-![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-systemd-FCC624?logo=linux&logoColor=black)
-![Focus](https://img.shields.io/badge/focus-reliability%20%26%20automation-0A66C2)
+**Python · Linux · systemd · API Integration · Workflow Orchestration · Reliability Engineering**
 
 [RebootAI](https://www.rebootai.link) · [GitHub Profile](https://github.com/irebootai)
 
@@ -16,26 +12,27 @@
 
 ---
 
-## Project Story
+## Engineering Context
 
-ExtremeViper is a real-time automation project built to demonstrate how production-style systems can process external data, manage workflow state, enforce safety boundaries, recover from failures, and keep human operators in control of high-impact actions.
+ExtremeViper is a long-running engineering initiative focused on designing and operating a real-time automation platform under external-data, state-management, service-reliability, and human-control constraints.
 
-The original domain is market-data driven, but the engineering patterns are directly transferable to Cloud Operations, DevOps, Platform Engineering, Site Reliability Engineering, and Operations Support environments.
+The domain is market-data driven, but the engineering work is broader: ingest external data, validate freshness and eligibility, coordinate stateful workflows, isolate failures, supervise Linux services, expose operational controls, and keep high-impact actions behind deliberate safety boundaries.
 
-The public repository is intentionally presented as a **sanitized engineering showcase**. Private implementation work remains in a separate private engineering repository.
+This public repository is a sanitized case study of those engineering practices. Private implementation work, credentials, production-specific configuration, and sensitive operational details remain outside this repository.
 
-## Recruiter Snapshot
+## Engineering Ownership
 
-ExtremeViper demonstrates practical experience with:
+The project reflects end-to-end ownership across architecture, automation, operations, reliability, and supportability:
 
-- **Python automation** — event-driven processing, API orchestration, validation flows, and workflow control
-- **Linux operations** — service execution, systemd supervision, restart behavior, and journald-based diagnostics
-- **Reliability engineering** — explicit lifecycle state, stale-event rejection, deduplication, overlap protection, and safe defaults
-- **DevOps practices** — GitHub-based project management, deployment/runbook documentation, environment hygiene, and repeatable operations
-- **Platform thinking** — modular boundaries between data ingestion, decision logic, operator interaction, monitoring, and execution controls
-- **Operations support** — status handling, troubleshooting paths, failure isolation, service recovery, and human-in-the-loop controls
+- Designed modular boundaries across data ingestion, validation, workflow orchestration, operator control, monitoring, and execution paths.
+- Operated the application as a supervised Linux service using `systemd`, restart behavior, readiness checks, and `journald` diagnostics.
+- Integrated external APIs while accounting for stale data, transport failures, duplicate events, dependency boundaries, and safe degradation.
+- Implemented deterministic lifecycle handling so state transitions remain explicit, observable, and resistant to stale or conflicting actions.
+- Built safety controls including freshness gates, deduplication, overlap protection, human confirmation, and execution disabled by default.
+- Established operational procedures for service status, troubleshooting, restart, failure recovery, and incident-style diagnosis.
+- Maintained separation between public-safe presentation material and private implementation/configuration.
 
-## Architecture Overview
+## Architecture
 
 ```text
 External Data / APIs
@@ -44,65 +41,78 @@ External Data / APIs
 Data Ingestion & Validation
         │
         ▼
-Decision / Signal Pipeline
+Decision / Processing Pipeline
         │
         ▼
-Workflow State Machine
+Deterministic Workflow State
         │
-        ├── Operator Confirmation
+        ├── Operator Control
         ├── Monitoring
+        ├── Recovery / Reset
         └── Safety / Execution Gates
 
 Linux Runtime
   ├── systemd supervision
+  ├── readiness checks
   ├── restart policies
-  ├── environment loading
+  ├── environment isolation
   └── journald diagnostics
 ```
 
-The core design goal is simple: **make state explicit, reject unsafe inputs, isolate failures, and keep the system understandable under real-time conditions.**
+The architecture is intentionally separated by responsibility so data concerns, workflow state, operator interaction, monitoring, and execution boundaries can be reasoned about independently.
 
-## Engineering Challenges Addressed
+## Design Decisions & Tradeoffs
 
-A real-time service becomes unreliable quickly when basic operational questions are left unanswered. ExtremeViper was designed around questions such as:
+### Explicit state over implicit workflow behavior
 
-- Is incoming data current enough to trust?
-- Is another workflow already active?
-- Can an old or duplicate event affect a new request?
-- What happens if the service restarts?
-- Can a transport failure be mistaken for approval?
-- Can the system continue operating safely if execution is disabled?
+Real-time systems become difficult to troubleshoot when behavior depends on hidden context. ExtremeViper uses explicit lifecycle state so the active workflow stage can be inspected, validated, and controlled.
 
-The project addresses these through deterministic state handling, freshness checks, request isolation, stale-event rejection, overlap protection, supervised Linux service operation, and explicit execution boundaries.
+**Tradeoff:** more state-management code in exchange for clearer failure analysis and safer transitions.
 
-## Reliability & Safety Controls
+### Execution isolated from analysis
 
-- Deterministic lifecycle state management
-- Explicit startup and readiness behavior
+Data processing and decision logic do not depend on live execution being enabled. This allows the system to operate in decision-support and shadow modes while keeping higher-risk actions behind a separate boundary.
+
+**Tradeoff:** additional integration boundaries in exchange for safer testing and reduced coupling.
+
+### Stale and duplicate events rejected
+
+Old responses, repeated callbacks, overlapping scans, or late transport events must not mutate the current workflow.
+
+**Tradeoff:** stricter validation and request correlation in exchange for deterministic behavior under asynchronous conditions.
+
+### Human control at high-impact boundaries
+
+Sensitive actions remain confirmation-gated rather than being treated as implicitly approved.
+
+**Tradeoff:** lower automation autonomy in exchange for operational safety and auditability.
+
+### Supervised Linux service operation
+
+The application is managed as a service rather than as an ad hoc script.
+
+**Tradeoff:** additional operational configuration in exchange for restart behavior, startup consistency, service inspection, and centralized diagnostics.
+
+## Reliability Engineering
+
+Reliability controls are treated as core design requirements rather than afterthoughts:
+
+- Deterministic lifecycle transitions
 - Data freshness validation
-- Duplicate and stale-event rejection
+- Stale-event rejection
+- Duplicate-event suppression
 - Overlap protection for active workflows
+- Safe defaults for invalid or unavailable inputs
+- Explicit readiness behavior
 - Human confirmation for sensitive actions
-- Execution disabled by default unless separately enabled and validated
-- Secret and environment-file hygiene
-- Operational logging and troubleshooting through Linux service tooling
+- Execution disabled by default unless independently enabled and validated
+- Operational logging and service diagnostics
 
-## Technology
+## Operations & Supportability
 
-| Area | Technologies / Practices |
-|---|---|
-| Language | Python 3.12 |
-| Runtime | Linux |
-| Service management | systemd |
-| Diagnostics | journald |
-| External integration | REST APIs, Telegram Bot API, broker/data-provider adapters |
-| Architecture | Modular components, controllers, adapters, deterministic state machine |
-| Reliability | Freshness gates, deduplication, stale-event rejection, overlap protection |
-| DevOps | Git, GitHub, deployment documentation, operational runbooks |
+The project is designed to be operated, not just executed.
 
-## Operations Example
-
-Typical Linux service operations include:
+Typical service operations include:
 
 ```bash
 sudo systemctl status extremeviper.service
@@ -110,34 +120,62 @@ sudo systemctl restart extremeviper.service
 sudo journalctl -u extremeviper.service -f
 ```
 
-This reflects the operational side of the project: not just writing automation, but running, observing, troubleshooting, and recovering it as a service.
+Operational work includes verifying service state, isolating API or transport failures, reviewing logs, validating environment readiness, identifying stale or duplicate workflow conditions, restarting safely, and confirming recovery back to a known lifecycle state.
 
-## What This Project Demonstrates
+## Technology & Practices
 
-For recruiters and hiring managers, the most important takeaway is not the trading domain. It is the engineering discipline behind the system:
+| Engineering Area | Technologies / Practices |
+|---|---|
+| Language | Python 3.12 |
+| Runtime | Linux |
+| Service management | systemd |
+| Diagnostics | journald |
+| External integrations | REST APIs, Telegram Bot API, data-provider and broker adapters |
+| Architecture | Modular components, adapters, controllers, deterministic state machine |
+| Reliability | Freshness gates, deduplication, stale-event rejection, overlap protection, safe defaults |
+| DevOps | Git, GitHub, environment hygiene, deployment documentation, operational runbooks |
+| Operations | Service supervision, status inspection, recovery, failure isolation, troubleshooting |
 
-**build a real-time Python service, integrate external APIs, manage state explicitly, automate Linux operations, add reliability safeguards, document recovery procedures, and keep high-impact actions behind deliberate controls.**
+## Failure Modes Considered
 
-Those capabilities map directly to:
+The system is designed around practical operational questions:
 
-- Cloud Operations Engineer
-- DevOps Engineer
-- Platform Engineer
-- Site Reliability Engineer (SRE)
-- Operations Support Engineer
-- Infrastructure / Automation Engineer
+- What happens when incoming data is stale or unavailable?
+- What if an external API responds late or fails?
+- What if an operator responds to an expired request?
+- What if the same action is received twice?
+- What if a scan starts while another workflow is active?
+- What happens after a service restart?
+- Can a transport failure be mistaken for approval?
+- Can the system continue safely when execution is unavailable?
+
+These failure modes drive the architecture, validation rules, lifecycle design, and operating procedures.
+
+## Engineering Outcomes
+
+ExtremeViper demonstrates the ability to take a real-time automation system beyond basic scripting and into production-style operational discipline:
+
+- External dependencies are validated rather than blindly trusted.
+- Workflow state is explicit rather than implicit.
+- Failure conditions are handled as first-class system behavior.
+- Services are supervised and diagnosable on Linux.
+- Recovery paths are documented and operationally usable.
+- High-impact actions remain separated behind deliberate safety boundaries.
+- The system can continue operating in reduced-risk modes when execution is disabled.
+
+These patterns are directly transferable to Cloud Operations, DevOps, Platform Engineering, Site Reliability Engineering, Infrastructure Automation, and Operations Support environments.
 
 ## Public Showcase Scope
 
-This repository is intentionally recruiter-facing. It may contain selected public-safe code, configuration examples, and documentation that demonstrate architecture and operational practices.
+This repository intentionally exposes only public-safe material suitable for technical review and recruiter visibility.
 
-Private engineering work, credentials, production-specific configuration, and implementation details remain outside this repository.
+It is not intended to be a complete mirror of the private engineering repository. Sensitive configuration, private implementation details, credentials, production-specific information, and internal operational artifacts remain private.
 
 ## RebootAI
 
 ExtremeViper is part of the RebootAI engineering portfolio.
 
-**RebootAI focuses on cloud operations, platform engineering, automation, observability, reliability, and AI-assisted workflows.**
+**RebootAI focuses on platform engineering, cloud operations, automation, observability, reliability, and AI-assisted workflows.**
 
 <div align="center">
 
