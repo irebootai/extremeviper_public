@@ -18,7 +18,18 @@ ExtremeViper is a long-running engineering initiative focused on designing and o
 
 The domain is market-data driven, but the engineering work is broader: ingest external data, validate freshness and eligibility, coordinate stateful workflows, isolate failures, supervise Linux services, expose operational controls, and keep high-impact actions behind deliberate safety boundaries.
 
-This public repository is a sanitized case study of those engineering practices. Private implementation work, credentials, production-specific configuration, and sensitive operational details remain outside this repository.
+This public repository documents the architecture, operating model, reliability controls, and selected public-safe implementation patterns. Private implementation details, credentials, production-specific configuration, and sensitive operational artifacts remain outside the public repository.
+
+## System Scope
+
+The platform combines real-time processing with production-style operating controls:
+
+- **Real-time automation** with an immediate first scan and one-second scanning cadence during active workflows.
+- **External API integration** for data ingestion, operator messaging, and separately gated execution paths.
+- **Deterministic workflow orchestration** across discovery, confirmation, monitoring, exit, recovery, and reset states.
+- **Human-in-the-loop control** at high-impact decision boundaries, including expiration and stale-response protection.
+- **Linux service operation** with `systemd` supervision, readiness checks, restart behavior, environment isolation, and `journald` diagnostics.
+- **Reliability safeguards** for stale data, duplicate events, overlapping work, delayed responses, dependency failures, and safe degraded operation.
 
 ## Engineering Ownership
 
@@ -30,33 +41,28 @@ The project reflects end-to-end ownership across architecture, automation, opera
 - Implemented deterministic lifecycle handling so state transitions remain explicit, observable, and resistant to stale or conflicting actions.
 - Built safety controls including freshness gates, deduplication, overlap protection, human confirmation, and execution disabled by default.
 - Established operational procedures for service status, troubleshooting, restart, failure recovery, and incident-style diagnosis.
-- Maintained separation between public-safe presentation material and private implementation/configuration.
+- Maintained a deliberate boundary between public technical evidence and private implementation/configuration.
 
 ## Architecture
 
-```text
-External Data / APIs
-        │
-        ▼
-Data Ingestion & Validation
-        │
-        ▼
-Decision / Processing Pipeline
-        │
-        ▼
-Deterministic Workflow State
-        │
-        ├── Operator Control
-        ├── Monitoring
-        ├── Recovery / Reset
-        └── Safety / Execution Gates
+```mermaid
+flowchart LR
+    A[External Data / APIs] --> B[Ingestion & Validation]
+    B --> C[Decision / Processing Pipeline]
+    C --> D[Deterministic Workflow State]
+    D --> E[Operator Control]
+    D --> F[Monitoring]
+    D --> G[Recovery / Reset]
+    D --> H[Safety / Execution Gates]
 
-Linux Runtime
-  ├── systemd supervision
-  ├── readiness checks
-  ├── restart policies
-  ├── environment isolation
-  └── journald diagnostics
+    I[Linux Runtime] --> J[systemd Supervision]
+    I --> K[Readiness Checks]
+    I --> L[Restart Policies]
+    I --> M[journald Diagnostics]
+
+    J -. operates .-> D
+    K -. validates .-> B
+    M -. observes .-> D
 ```
 
 The architecture is intentionally separated by responsibility so data concerns, workflow state, operator interaction, monitoring, and execution boundaries can be reasoned about independently.
@@ -108,11 +114,9 @@ Reliability controls are treated as core design requirements rather than afterth
 - Execution disabled by default unless independently enabled and validated
 - Operational logging and service diagnostics
 
-## Operations & Supportability
+## Operational Evidence
 
-The project is designed to be operated, not just executed.
-
-Typical service operations include:
+The project is operated as a service, not just executed as a script. Day-to-day operating and troubleshooting patterns include:
 
 ```bash
 sudo systemctl status extremeviper.service
@@ -120,7 +124,16 @@ sudo systemctl restart extremeviper.service
 sudo journalctl -u extremeviper.service -f
 ```
 
-Operational work includes verifying service state, isolating API or transport failures, reviewing logs, validating environment readiness, identifying stale or duplicate workflow conditions, restarting safely, and confirming recovery back to a known lifecycle state.
+Operational work includes:
+
+- Verifying service health and runtime state.
+- Reviewing `journald` output to isolate application, API, transport, or configuration failures.
+- Validating environment readiness before startup.
+- Detecting stale, duplicate, or overlapping workflow conditions.
+- Restarting services safely and confirming recovery to a known lifecycle state.
+- Keeping decision-support and shadow workflows available independently of higher-risk execution paths.
+
+This operational layer is a core part of the engineering work: build the automation, run it, observe it, troubleshoot it, and recover it predictably.
 
 ## Technology & Practices
 
@@ -153,7 +166,7 @@ These failure modes drive the architecture, validation rules, lifecycle design, 
 
 ## Engineering Outcomes
 
-ExtremeViper demonstrates the ability to take a real-time automation system beyond basic scripting and into production-style operational discipline:
+ExtremeViper takes a real-time automation system beyond basic scripting and applies production-style operational discipline:
 
 - External dependencies are validated rather than blindly trusted.
 - Workflow state is explicit rather than implicit.
@@ -163,13 +176,13 @@ ExtremeViper demonstrates the ability to take a real-time automation system beyo
 - High-impact actions remain separated behind deliberate safety boundaries.
 - The system can continue operating in reduced-risk modes when execution is disabled.
 
-These patterns are directly transferable to Cloud Operations, DevOps, Platform Engineering, Site Reliability Engineering, Infrastructure Automation, and Operations Support environments.
+The resulting engineering patterns are directly applicable to Cloud Operations, DevOps, Platform Engineering, Site Reliability Engineering, Infrastructure Automation, and Operations Support environments.
 
-## Public Showcase Scope
+## Public Repository Boundary
 
-This repository intentionally exposes only public-safe material suitable for technical review and recruiter visibility.
+This repository exposes selected public-safe code, configuration examples, and technical documentation for external review. It is intentionally not a complete mirror of the private engineering repository.
 
-It is not intended to be a complete mirror of the private engineering repository. Sensitive configuration, private implementation details, credentials, production-specific information, and internal operational artifacts remain private.
+Sensitive configuration, credentials, private implementation details, production-specific information, and internal operational artifacts remain private by design.
 
 ## RebootAI
 
